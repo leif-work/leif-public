@@ -1,182 +1,128 @@
-
 import React from 'react';
-import { Table, Tag } from 'antd';
-import type { TableProps } from 'antd/es/table';
+import { Card } from 'antd';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label } from 'recharts';
 
-// 1. 定义数据源类型
-interface KpiItem {
-  key: string;
-  indicator: string;
-  value2024FY: string;
-  value2024YTD: string;
-  value2025YTD: string;
-  target: string;
-  // 辅助字段：用于控制第一列合并
-  rowSpan?: number;
-}
-
-// 2. 模拟表格数据
-const tableData: KpiItem[] = [
-  {
-    key: '1',
-    indicator: 'Revenues in USDm',
-    value2024FY: '275.1',
-    value2024YTD: '105.7',
-    value2025YTD: '96\nYoY - (9)%',
-    target: '0',
-    rowSpan: 4, // 该列占据4行
-  },
-  {
-    key: '2',
-    indicator: 'Origination Intensity',
-    value2024FY: '7.6',
-    value2024YTD: '6.1',
-    value2025YTD: '4.5\nYoY - (26)%',
-    target: '10',
-    // 此行被第一列合并，rowSpan 为 0
-  },
-  {
-    key: '3',
-    indicator: 'Share of Wallet %',
-    value2024FY: '7.1%',
-    value2024YTD: '5.2%',
-    value2025YTD: '7.4%\nYoY - 221 bps',
-    target: '10.0%',
-  },
-  {
-    key: '4',
-    indicator: '% of Clients in Top 5 for SPC',
-    value2024FY: '22.7%',
-    value2024YTD: '16.7%',
-    value2025YTD: '13.6%\nYoY - (303) bps',
-    target: '50.0%',
-  },
+// 1. 图表数据（完全还原原图）
+const chartData = [
+  { vertical: 'Financial Sponsors', yoy: -84.4, fee: 1 },
+  { vertical: 'Energy', yoy: -6.3, fee: 26 },
+  { vertical: 'FIG', yoy: -3.9, fee: 66 },
+  { vertical: 'Business Services', yoy: 5.6, fee: 91 },
+  { vertical: 'Conglomerates', yoy: 15.2, fee: 91 },
+  { vertical: 'Technology', yoy: 15.4, fee: 127 },
+  { vertical: 'Public Sector', yoy: 15.9, fee: 134 },
+  { vertical: 'Healthcare', yoy: 21.2, fee: 159 },
+  { vertical: 'Real Estate', yoy: 21.6, fee: 159 },
+  { vertical: 'Consumer & Retail', yoy: 34.0, fee: 228 },
+  { vertical: 'Telecom & Media', yoy: 39.2, fee: 235 },
+  { vertical: 'PURE', yoy: 39.2, fee: 250 },
+  { vertical: 'TLC', yoy: 42.0, fee: 253 },
+  { vertical: 'Metals & Mining', yoy: 49.4, fee: 339 },
+  { vertical: 'Chemicals', yoy: 49.7, fee: 416 },
+  { vertical: 'Industrials', yoy: 52.1, fee: 516 },
 ];
 
-// 3. 定义列配置
-const columns: TableProps<KpiItem>['columns'] = [
-  {
-    title: 'Key Performance Indicators',
-    dataIndex: 'indicator',
-    key: 'indicator',
-    width: 220,
-    // 第一列左对齐
-    align: 'left',
-    // 关键：合并单元格，第一行保留，其余行隐藏
-    onCell: (record, index) => ({
-      rowSpan: record.rowSpan || (index === 0 ? 1 : 0),
-    }),
-  },
-  // 2024 FY 列
-  {
-    title: '2024 FY',
-    dataIndex: 'value2024FY',
-    key: 'value2024FY',
-    align: 'center',
-  },
-  // 2024 YTD 列
-  {
-    title: '2024 YTD',
-    dataIndex: 'value2024YTD',
-    key: 'value2024YTD',
-    align: 'center',
-  },
-  // 2025 YTD 列（核心：带颜色的单元格）
-  {
-    title: '2025 YTD',
-    dataIndex: 'value2025YTD',
-    key: 'value2025YTD',
-    align: 'center',
-    // 自定义单元格渲染与样式
-    customRender: (text: string) => {
-      // 处理换行符，antd 默认不解析 \n，需用 div 包裹
-      return <div>{text}</div>;
-    },
-    // 关键：动态设置背景色
-    customCell: (record) => {
-      const text = record.value2025YTD;
-      let bgColor = '#fff';
-      let textColor = '#000';
+// 2. 右侧绝对值图表数据（按金额从高到低排序，还原原图顺序）
+const feeSortedData = [...chartData].sort((a, b) => b.fee - a.fee);
 
-      // 逻辑：包含 "(9)%" 或 "(26)%" 设为红色背景
-      if (text.includes('(9)%') || text.includes('(26)%')) {
-        bgColor = '#f5222d'; // 红色
-        textColor = '#fff';
-      } 
-      // 包含 "221 bps" 设为绿色背景
-      else if (text.includes('221 bps')) {
-        bgColor = '#52c41a'; // 绿色
-        textColor = '#fff';
-      }
-      // 包含 "(303) bps" 设为浅黄色背景
-      else if (text.includes('(303) bps')) {
-        bgColor = '#faad14'; // 黄色/火山
-        textColor = '#000';
-      }
+// 3. 主组件
+const MarketPerformanceChart: React.FC = () => {
+  return (
+    <Card title="Overall Market Performance Update - All" style={{ width: '100%' }}>
+      <p style={{ fontSize: 16, margin: '0 0 16px 0' }}>
+        Global IB fees up 21% 2025 YTD and All is up 21%
+      </p>
 
-      return {
-        style: {
-          backgroundColor: bgColor,
-          color: textColor,
-          fontWeight: 'bold',
-        },
-      };
-    },
-  },
-  // Target 列
-  {
-    title: 'Target',
-    dataIndex: 'target',
-    key: 'target',
-    align: 'center',
-    // 目标列使用 Tag 标签展示
-    customRender: (text: string) => {
-      // 0 表示无目标，不显示标签
-      if (text === '0') return '-';
-      
-      // 根据目标值匹配 Tag 颜色
-      let color: TagProps['color'] = 'gray';
-      if (text === '10') color = 'blue';
-      if (text === '10.0%') color = 'cyan';
-      if (text === '50.0%') color = 'purple';
+      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+        {/* 左图：YoY 同比增速柱状图 */}
+        <div style={{ flex: 1, minWidth: 500 }}>
+          <h4 style={{ margin: '0 0 8px 0' }}>Global adjusted IB fee pool per vertical: YoY Performance</h4>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="vertical"
+                angle={-90}
+                textAnchor="end"
+                height={100}
+                tick={{ fontSize: 11 }}
+              />
+              <YAxis
+                tickFormatter={(value) => `${value}%`}
+                domain={[-100, 60]}
+                tick={{ fontSize: 11 }}
+              >
+                <Label value="YoY %" position="insideLeft" angle={-90} style={{ textAnchor: 'middle' }} />
+              </YAxis>
+              <Tooltip
+                formatter={(value: number) => [`${value}%`, 'YoY Growth']}
+                labelFormatter={(label) => `Vertical: ${label}`}
+              />
+              <Bar
+                dataKey="yoy"
+                fill="#8c8c8c"
+                radius={[4, 4, 0, 0]}
+                label={{
+                  position: 'top',
+                  formatter: (value: number) => `${value}%`,
+                  fontSize: 11,
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
-      return <Tag color={color}>{text}</Tag>;
-    },
-  },
-];
+        {/* 右图：2025 YTD 绝对值柱状图 */}
+        <div style={{ flex: 1, minWidth: 500 }}>
+          <h4 style={{ margin: '0 0 8px 0' }}>Global adjusted IB fee pool per sector: 2025 YTD</h4>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              data={feeSortedData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="vertical"
+                angle={-90}
+                textAnchor="end"
+                height={100}
+                tick={{ fontSize: 11 }}
+              />
+              <YAxis
+                tickFormatter={(value) => `${value}M`}
+                domain={[0, 550]}
+                tick={{ fontSize: 11 }}
+              >
+                <Label value="IB Fees 2025 YTD USDm" position="insideLeft" angle={-90} style={{ textAnchor: 'middle' }} />
+              </YAxis>
+              <Tooltip
+                formatter={(value: number) => [`$${value}M`, 'IB Fees']}
+                labelFormatter={(label) => `Sector: ${label}`}
+              />
+              <Bar
+                dataKey="fee"
+                fill="#8c8c8c"
+                radius={[4, 4, 0, 0]}
+                label={{
+                  position: 'top',
+                  formatter: (value: number) => `${value}`,
+                  fontSize: 11,
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-// 4. 图例说明（底部的颜色解释）
-const Legend = () => (
-  <div style={{ marginTop: 16, fontSize: 12 }}>
-    <div style={{ display: 'inline-block', marginRight: 16 }}>
-      <span style={{ display: 'inline-block', width: 12, height: 12, backgroundColor: '#f5222d', marginRight: 4 }}></span>
-      More than 20% down
-    </div>
-    <div style={{ display: 'inline-block', marginRight: 16 }}>
-      <span style={{ display: 'inline-block', width: 12, height: 12, backgroundColor: '#faad14', marginRight: 4 }}></span>
-      Less than 20% down
-    </div>
-    <div style={{ display: 'inline-block' }}>
-      <span style={{ display: 'inline-block', width: 12, height: 12, backgroundColor: '#52c41a', marginRight: 4 }}></span>
-      Flat or Up
-    </div>
-  </div>
-);
+      {/* 数据来源标注 */}
+      <p style={{ fontSize: 12, color: '#666', marginTop: 16 }}>
+        1. Source: Dealogic as of 30 Jun 2025, Updated as of 5-July-25
+      </p>
+    </Card>
+  );
+};
 
-// 5. 主组件
-const KpiTable: React.FC = () => (
-  <>
-    <Table<KpiItem>
-      columns={columns}
-      dataSource={tableData}
-      bordered
-      pagination={false}
-      size="middle"
-      // 整体样式：表头加粗，边框更清晰
-      style={{ marginBottom: 8 }}
-    />
-    <Legend />
-  </>
-);
-
-export default KpiTable;
+export default MarketPerformanceChart;
